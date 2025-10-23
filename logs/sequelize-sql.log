@@ -1,9 +1,0 @@
-2025-10-23T13:03:40.525Z - Executing (default): SELECT 1+1 AS result
-2025-10-23T13:03:44.506Z - Executing (default): SELECT `id`, `status`, `email`, `balance`, `createdAt`, `updatedAt` FROM `users` AS `User` WHERE `User`.`status` = 'ACTIVE' ORDER BY `User`.`createdAt` DESC LIMIT 10;
-2025-10-23T13:05:57.972Z - Executing (default): SELECT `Order`.`id`, `Order`.`userId`, `Order`.`amount`, `Order`.`status`, `Order`.`idempotencyKey`, `Order`.`createdAt`, `Order`.`updatedAt`, `ledgerEntries`.`id` AS `ledgerEntries.id`, `ledgerEntries`.`orderId` AS `ledgerEntries.orderId`, `ledgerEntries`.`userId` AS `ledgerEntries.userId`, `ledgerEntries`.`amount` AS `ledgerEntries.amount`, `ledgerEntries`.`type` AS `ledgerEntries.type`, `ledgerEntries`.`description` AS `ledgerEntries.description`, `ledgerEntries`.`createdAt` AS `ledgerEntries.createdAt` FROM `orders` AS `Order` LEFT OUTER JOIN `ledger_entries` AS `ledgerEntries` ON `Order`.`id` = `ledgerEntries`.`orderId` WHERE `Order`.`userId` = 1 ORDER BY `Order`.`createdAt` DESC;
-2025-10-23T13:06:22.682Z - Executing (default): SELECT `id`, `status`, `email`, `balance`, `createdAt`, `updatedAt` FROM `users` AS `User` WHERE `User`.`id` = 1;
-2025-10-23T13:07:04.822Z - Executing (198f8ce3-da4b-449b-a098-421ef3018ef5): SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-2025-10-23T13:07:04.823Z - Executing (198f8ce3-da4b-449b-a098-421ef3018ef5): START TRANSACTION;
-2025-10-23T13:07:04.823Z - Executing (198f8ce3-da4b-449b-a098-421ef3018ef5): SELECT `id`, `status`, `email`, `balance`, `createdAt`, `updatedAt` FROM `users` AS `User` WHERE `User`.`id` = 1 FOR UPDATE;
-2025-10-23T13:07:04.828Z - Executing (198f8ce3-da4b-449b-a098-421ef3018ef5): UPDATE `users` SET `balance`=?,`updatedAt`=? WHERE `id` = ?
-2025-10-23T13:07:04.830Z - Executing (198f8ce3-da4b-449b-a098-421ef3018ef5): COMMIT;
