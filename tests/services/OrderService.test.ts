@@ -4,6 +4,8 @@ import { sequelize } from '../../src/config/database';
 import { User } from '../../src/models/User';
 import { UserStatus } from '../../src/models/User';
 
+
+
 describe('OrderService Unit Tests', () => {
   let service: OrderService;
 
@@ -51,6 +53,25 @@ describe('OrderService Unit Tests', () => {
     expect(firstResult.orderId).toBe(secondResult.orderId);
   });
 
+
+test('Нельзя создать два заказа с одинаковым idempotencyKey', async () => {
+  const orderData = {
+    userId: 1,
+    amount: 50,
+    idempotencyKey: 'unique-test-key'
+  };
+
+  const firstOrder = await service.createOrderWithPayment(orderData);
+  const secondOrder = await service.createOrderWithPayment(orderData);
+
+  // Должны вернуть один и тот же заказ
+  expect(firstOrder.orderId).toBe(secondOrder.orderId);
+});
+
+
+
+
+
   test('Должен выбросить ошибку при недостаточном балансе', async () => {
     await expect(
       service.createOrderWithPayment({
@@ -74,4 +95,6 @@ describe('OrderService Unit Tests', () => {
   afterAll(async () => {
     await sequelize.close();
   });
+
+
 });
