@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { OrderService } from "../services/OrderService";
 import { InsufficientBalanceError, UserNotFoundError, DuplicateKeyError } from "../services/ErrorService";
+import { createOrderSchema } from "../schemas/orderSchemas";
+import pinoLogger from "../logger";
 
 
 export class OrderController {
@@ -10,28 +12,36 @@ export class OrderController {
         this.orderService = new OrderService()
     }
 
+    private handleError(res: Response, error: Error) {
+        switch (error.constructor) {
+            case UserNotFoundError:
+                return res.status(404).json({ error: error.message });
+            case InsufficientBalanceError:
+                return res.status(400).json({ error: error.message });
+            case DuplicateKeyError:
+                return res.status(409).json({ error: error.message });
+            default:
+                console.error("Unexpected error:", error);
+                return res.status(500).json({ error: "Internal Server Error" });
+        }
+    }
+
+
+
 
     createOrder = async(req: Request, res: Response): Promise<void> => {
+        pinoLogger.info(`createOrder called`);
+        
         try {
 
-            const { userId, amount, idempotencyKey } = req.body;
-
-            if(!userId || !amount || !idempotencyKey) {
-                res.status(400).json({
-                    error: 'Отсутствуют обязательные поля: userId, amount, idempotencyKey'
-                });
+            const validateRequest = createOrderSchema.safeParse(req.body);
             
+            if (!validateRequest.success) {
+                res.status(400).json({ error: validateRequest.error });
                 return;
             }
 
-            if (amount <= 0) {
-                res.status(400).json({
-                    error: 'Сумма должна быть больше 0'
-                });
-    
-                return;
-            }
-
+            const { userId, amount, idempotencyKey } = validateRequest.data;
 
             const result = await this.orderService.createOrderWithPayment({
                 userId: Number(userId),
@@ -45,42 +55,15 @@ export class OrderController {
             });
 
         } catch (error) {
-            if(error instanceof InsufficientBalanceError) {
-                res.status(400).json({
-                    error: error.message
-                })
-
-                return;
-            }
-
-
-            if(error instanceof UserNotFoundError) {
-                res.status(404).json({
-                    error: error.message
-                });
-                    
-                return;
-            }
-
-
-            if(error instanceof DuplicateKeyError) {
-                res.status(409).json({
-                    error: error.message
-                });
-                
-                return;
-            }
-
-            console.error('Ошибка при создании заказа:', error);
-            res.status(500).json({
-                error: 'Внутренняя ошибка сервера'
-            });
+            this.handleError(res, error as Error);
         }
 
     }
 
 
     fetchOrders = async(req: Request, res: Response): Promise<void> => {
+        pinoLogger.info(`fetchOrders called`);
+
         try {
             const { userId } = req.params;
 
@@ -92,11 +75,7 @@ export class OrderController {
             });
 
         } catch(error) {
-            console.error('Ошибка при получении заказов!', error);
-            res.status(500).json({
-                error: 'Internal error'
-            })
-
+            this.handleError(res, error as Error);
         }
     }
 

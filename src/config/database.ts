@@ -5,9 +5,11 @@ import path from 'path';
 
 dotenv.config();
 
-const logFilePath = path.join(__dirname, '..', '../logs', 'sequelize-sql.log');
+const d = new Date();
+const _date = `${d.getFullYear()}_${d.getMonth()}_${d.getDay()}`;
 
-// Функция логирования в файл
+const logFilePath = path.join(__dirname, '..', '../logs', `sequelize-sql-${_date}.log`);
+
 function logToFile(msg: string) {
   fs.appendFile(logFilePath, `${new Date().toISOString()} - ${msg}\n`, (err) => {
     if (err) console.error('Ошибка записи в лог файл:', err);

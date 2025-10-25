@@ -1,22 +1,24 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import app from './app';
 import { sequelize, testConnection } from './config/database';
 import { User, Order, LedgerEntry } from './models';
-import { OrderController } from './controllers/OrderController';
-import { UserController } from './controllers/UserController';
+//import { OrderController } from './controllers/OrderController';
+//import { UserController } from './controllers/UserController';
+
 
 import { UserStatus } from './models/User';
 
 dotenv.config();
 
-const app = express();
+//const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+//app.use(express.json());
 
-const orderController = new OrderController();
-const userController = new UserController();
-
+//const orderController = new OrderController();
+//const userController = new UserController();
+/*
 app.post('/orders', orderController.createOrder);
 app.get('/orders/:userId', orderController.fetchOrders);
 
@@ -25,14 +27,7 @@ app.all('/fetch_users_list', userController.fetchUsersList);
 app.get('/user/:userId', userController.fetchUserById)
 
 app.post('/user_add_money', userController.addMoneyToUserBalance);
-
-
-
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK' });
-});
-
+*/
 
 
 async function startServer() {
