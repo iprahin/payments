@@ -10,10 +10,8 @@ describe('OrderService Unit Tests', () => {
   let service: OrderService;
 
   beforeAll(async () => {
-    // Синхронизируем БД перед тестами
     await sequelize.sync({ force: true });
     
-    // Создаем тестового пользователя
     await User.create({
       email: 'test@example.com',
       balance: 1000,

@@ -1,17 +1,28 @@
 import { User } from './User';
 import { Order } from './Order';
 import { LedgerEntry } from './LedgerEntry';
+import { UserRoles } from './UserRoles';
 
-// Определяем связи между моделями
 User.hasMany(Order, {
   foreignKey: 'userId',
   as: 'orders'
+});
+
+User.hasMany(UserRoles, {
+  foreignKey: 'userId',
+  as: 'user_roles'
 });
 
 Order.belongsTo(User, {
   foreignKey: 'userId',
   as: 'user'
 });
+
+UserRoles.belongsTo(User, {
+  foreignKey: 'userId'
+  //as: 'user'
+});
+
 
 Order.hasMany(LedgerEntry, {
   foreignKey: 'orderId',
@@ -23,4 +34,4 @@ LedgerEntry.belongsTo(Order, {
   as: 'order'
 });
 
-export { User, Order, LedgerEntry };
+export { User, Order, LedgerEntry, UserRoles };

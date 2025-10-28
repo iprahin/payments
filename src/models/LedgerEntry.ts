@@ -10,8 +10,8 @@ import { sequelize } from '../config/database';
 import { Order } from './Order';
 
 export enum LedgerEntryType {
-  DEBIT = 'DEBIT',   // Списание
-  CREDIT = 'CREDIT'  // Зачисление
+  DEBIT = 'DEBIT',
+  CREDIT = 'CREDIT'
 }
 
 export class LedgerEntry extends Model<

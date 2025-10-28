@@ -1,3 +1,5 @@
+import bcrypt from 'bcrypt';
+
 import { 
   Model, 
   DataTypes, 
@@ -6,6 +8,7 @@ import {
   CreationOptional 
 } from 'sequelize';
 import { sequelize } from '../config/database';
+import { UserRoles } from './UserRoles';
 
 
 export enum UserStatus {
@@ -22,10 +25,27 @@ export class User extends Model<
 > {
   declare id: CreationOptional<number>;
   declare status: UserStatus;
+  declare password: string;
   declare email: string;
   declare balance: number;
+  declare user_roles?: UserRoles[];
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+
+
+  async checkPassword(password: string): Promise<boolean> {
+    return bcrypt.compare(password, this.password);
+  }
+
+  toJSON() {
+    const attributes = { ...this.get() };
+    //delete attributes.password;
+
+    attributes.password = '.....';
+
+    return attributes;
+  }
+
 }
 
 User.init(
@@ -39,6 +59,10 @@ User.init(
         type: DataTypes.ENUM(...Object.values(UserStatus)),
         allowNull: false,
         defaultValue: UserStatus.ACTIVE
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     email: {
       type: DataTypes.STRING(255),
@@ -65,3 +89,19 @@ User.init(
     timestamps: true
   }
 );
+
+User.beforeCreate(async (user, options) => {
+  if (user.password) {
+    const saltRounds = 10;
+    const hashed = await bcrypt.hash(user.password, saltRounds);
+    user.password = hashed;
+  }
+});
+
+User.beforeUpdate(async (user, options) => {
+  if (user.changed('password')) {
+    const saltRounds = 10;
+    const hashed = await bcrypt.hash(user.password, saltRounds);
+    user.password = hashed;
+  }
+});
