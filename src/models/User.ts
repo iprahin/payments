@@ -18,7 +18,6 @@ export enum UserStatus {
 }
 
 
-// Используем современный TypeScript подход с InferAttributes
 export class User extends Model<
   InferAttributes<User>,
   InferCreationAttributes<User>
@@ -29,6 +28,7 @@ export class User extends Model<
   declare email: string;
   declare balance: number;
   declare user_roles?: UserRoles[];
+  declare refreshToken?: string;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
@@ -78,7 +78,7 @@ User.init(
       defaultValue: 0,
       validate: {
         min: 0
-      }
+      },
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE

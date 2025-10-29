@@ -2,6 +2,7 @@ import { User } from './User';
 import { Order } from './Order';
 import { LedgerEntry } from './LedgerEntry';
 import { UserRoles } from './UserRoles';
+import { Token } from './Token';
 
 User.hasMany(Order, {
   foreignKey: 'userId',
@@ -13,10 +14,22 @@ User.hasMany(UserRoles, {
   as: 'user_roles'
 });
 
+User.hasOne(Token, {
+  foreignKey: 'userId',
+  as: 'tokens'
+});
+
+
 Order.belongsTo(User, {
   foreignKey: 'userId',
   as: 'user'
 });
+
+Order.hasMany(LedgerEntry, {
+  foreignKey: 'orderId',
+  as: 'ledgerEntries'
+});
+
 
 UserRoles.belongsTo(User, {
   foreignKey: 'userId'
@@ -24,14 +37,16 @@ UserRoles.belongsTo(User, {
 });
 
 
-Order.hasMany(LedgerEntry, {
-  foreignKey: 'orderId',
-  as: 'ledgerEntries'
-});
-
 LedgerEntry.belongsTo(Order, {
   foreignKey: 'orderId',
   as: 'order'
 });
 
-export { User, Order, LedgerEntry, UserRoles };
+
+Token.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user'
+});
+
+
+export { User, Order, LedgerEntry, UserRoles, Token };

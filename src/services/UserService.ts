@@ -14,6 +14,18 @@ interface AddMoneyOutput {
     newBalance: number;
 }
 
+export interface UserPayload {
+  id: number; 
+  email: string;
+  roles?: number[]
+}
+
+export interface UserTokens {
+  accessToken: string;
+  refreshToken: string;
+}
+
+
 
 export class UserService {
 

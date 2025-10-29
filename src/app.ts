@@ -2,10 +2,13 @@ import express from 'express';
 import { OrderController } from './controllers/OrderController';
 import { UserController } from './controllers/UserController';
 import { AuthController } from './controllers/auth/AuthController';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
+
 
 const orderController = new OrderController();
 const userController = new UserController();
@@ -19,6 +22,10 @@ app.get('/health', (req, res) => {
 //auth
 app.post('/register', authController.register);
 app.post('/login', authController.login);
+
+app.all('/logout', authController.logout);
+app.post('/refresh', authController.refresh);
+
 
 
 

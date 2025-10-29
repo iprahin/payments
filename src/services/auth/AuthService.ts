@@ -1,14 +1,7 @@
 
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { SignOptions } from 'jsonwebtoken';
-
 import { User, UserStatus } from "../../models/User";
 import { UserRoles, UserRolesTypes } from "../../models/UserRoles";
-
-const JWT_SECRET: string = process.env.JWT_SECRET || 'asdk*1h.<M>m175$^@%#&*-LLsh22';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || 24 * 60 * 60;
-
+import { TokenService } from "./TokenService";
 
 
 interface UserRegister {
@@ -22,11 +15,22 @@ interface UserRegisterResult {
     data: string;
 }
 
-interface UserLoginResult extends UserRegisterResult {}
+interface UserLoginResult extends UserRegisterResult {
+    tokens?: {
+        accessToken: string;
+        refreshToken: string;
+    }
+}
 interface UserLoginDetails extends UserRegister {}
 
 
 export class AuthService {
+    private tokenService: TokenService;
+
+    constructor() {
+        this.tokenService = new TokenService();
+    }
+
 
     async register(input: UserRegister, userRole: UserRolesTypes = UserRolesTypes.CUSTOMER): Promise<UserRegisterResult> {
         
@@ -47,10 +51,10 @@ export class AuthService {
                                             balance: 0 });
 
         if(_newUser.id) {
-            await UserRoles.create({roleId: userRole, 
+            await UserRoles.create({
+                                    roleId: userRole, 
                                     userId: _newUser.id,
-
-            })
+                                    })
 
             return {
                 success: true,
@@ -92,20 +96,16 @@ export class AuthService {
                                     return role.roleId;
                                     });
 
-            const options: SignOptions = { expiresIn: 24 * 60 * 60 };
-            const token = jwt.sign(
-                            { 
-                                id: existingUser.id, 
-                                email: existingUser.email,
-                                roles: userRoles
-                            },
-                            JWT_SECRET as string,
-                            options
-                        );
+            const tokens = await this.tokenService.generateTokens({ 
+                                                id: existingUser.id, 
+                                                email: existingUser.email,
+                                                roles: userRoles
+                                            });
 
             return {
                     success: true,
-                    data: token
+                    data: (existingUser.id).toString(),
+                    tokens
                 }
 
         } catch (error) {
@@ -113,10 +113,26 @@ export class AuthService {
                 success: false,
                 data: 'Login Error'
             }
+        }
+    }
 
 
+
+    async logout() {
+        try {
+
+
+
+        } catch (error) {
+            return {
+                success: false,
+                data: 'Login Error'
+            }
 
         }
+
+
+
     }
 
 

@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import app from './app';
 import { sequelize, testConnection } from './config/database';
+
 //import { User, Order, LedgerEntry } from './models';
 //import { OrderController } from './controllers/OrderController';
 //import { UserController } from './controllers/UserController';
@@ -34,7 +35,7 @@ async function startServer() {
     try {
         await testConnection();
 
-        await sequelize.sync({ alter: true });
+        //await sequelize.sync({ alter: true });
 
 
         // Синхронизация моделей с БД (создание таблиц)
