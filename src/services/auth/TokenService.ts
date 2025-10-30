@@ -3,6 +3,13 @@ import { UserPayload, UserTokens } from "../UserService";
 import { User, Token } from "../../models";
 import  ms  from 'ms';
 
+interface DecodedPayload extends JwtPayload {
+    id: number;
+    email: string;
+    roles: number[];
+    expiresAt?: Date;
+}
+
 export class TokenService {
     private expiresAccessTokenIn = process.env.JWT_ACCESS_EXPIRES_IN as ms.StringValue;
     private expiresRefreshTokenIn = process.env.JWT_REFRESH_EXPIRES_IN as ms.StringValue;
@@ -58,34 +65,37 @@ export class TokenService {
     }
 
 
-    async refresh(refreshToken: string):Promise<UserTokens | void> {
+    async refreshToken(refreshToken: string):Promise<UserTokens | void> {
         if(!refreshToken) {
             throw new Error('Unauthorised!');
         }
 
         const _userPayload = await this.validateRefreshToken(refreshToken);
 
-        if(_userPayload) {
-            const _token = await Token.findOne({ where: {
+        const _token = await Token.findOne({ where: {
                                             userId: _userPayload.id,
                                             refreshToken: refreshToken
                                         }});
 
-            if(_token) {
-                const _user = await User.findByPk(_userPayload.id);
+        if(_token) {
+            const _user = await User.findByPk(_userPayload.id, {
+                                                    include: ['user_roles']
+                                                });
                 
-                if(_user) {
-                    const userRoles = _user.user_roles?.map(role => {
+            if(_user) {
+                const userRoles = _user.user_roles?.map(role => {
                                     return role.roleId;
                                     });
 
-                    return this.generateTokens({
-                                            id: _user.id,
-                                            email: _user.email,
-                                            roles: userRoles
-                                        });
+                const newTokens = await this.generateTokens({
+                                                        id: _user.id,
+                                                        email: _user.email,
+                                                        roles: userRoles || []
+                                                    });
 
-                }
+                await this.saveToken(_user.id, newTokens.refreshToken);
+
+                return newTokens;
             }
         }
 
@@ -93,9 +103,9 @@ export class TokenService {
     }
 
 
-    async validateAccessToken(accessToken: string): Promise<JwtPayload> {
+    async validateAccessToken(accessToken: string): Promise<DecodedPayload> {
         try {
-            return jwt.verify(accessToken, this.accessTokenSecret) as JwtPayload;
+            return jwt.verify(accessToken, this.accessTokenSecret) as DecodedPayload;
         } catch (error) {
             console.log(error);
             throw new Error('validate Access Token error');
@@ -105,9 +115,9 @@ export class TokenService {
 
 
 
-    async validateRefreshToken(refreshToken: string): Promise<JwtPayload> {
+    async validateRefreshToken(refreshToken: string): Promise<DecodedPayload> {
         try {
-            return jwt.verify(refreshToken, this.refreshTokenSecret) as JwtPayload;
+            return jwt.verify(refreshToken, this.refreshTokenSecret) as DecodedPayload;
         } catch (error) {
             console.log(error);
             throw new Error('validate Access Token error');
@@ -115,7 +125,15 @@ export class TokenService {
     }
 
 
-
+    async removeToken(userId: number): Promise<boolean> {
+        try {
+            await Token.destroy({ where: { userId } });
+            return true;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    }
 
 
 

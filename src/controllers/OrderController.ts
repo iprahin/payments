@@ -27,8 +27,6 @@ export class OrderController {
     }
 
 
-
-
     createOrder = async(req: Request, res: Response): Promise<void> => {
         pinoLogger.info(`createOrder called`);
         
@@ -42,6 +40,10 @@ export class OrderController {
             }
 
             const { userId, amount, idempotencyKey } = validateRequest.data;
+
+            //req.userRoles
+            //req.userId
+
 
             const result = await this.orderService.createOrderWithPayment({
                 userId: Number(userId),

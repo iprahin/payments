@@ -22,7 +22,7 @@ interface UserLoginResult extends UserRegisterResult {
     }
 }
 interface UserLoginDetails extends UserRegister {}
-
+interface UserLogoutResult extends UserRegisterResult {}
 
 export class AuthService {
     private tokenService: TokenService;
@@ -36,7 +36,7 @@ export class AuthService {
         
         const { email, password } = input;
         
-        const _existingUser = await User.findOne({where: {email}});
+        const _existingUser = await User.findOne({where: { email }});
 
         if(_existingUser !== null) {
             return {
@@ -99,7 +99,7 @@ export class AuthService {
             const tokens = await this.tokenService.generateTokens({ 
                                                 id: existingUser.id, 
                                                 email: existingUser.email,
-                                                roles: userRoles
+                                                roles: userRoles || []
                                             });
 
             return {
@@ -118,21 +118,27 @@ export class AuthService {
 
 
 
-    async logout() {
+    async logout(userId: number): Promise<UserLogoutResult> {
         try {
-
-
+            const removed = await this.tokenService.removeToken(userId);
+            if(removed) {
+                return {
+                    success: true,
+                    data: 'Logged out successfully'
+                }
+            } else {
+                return {
+                    success: false,
+                    data: 'Logout error'
+                }
+            }
 
         } catch (error) {
             return {
                 success: false,
-                data: 'Login Error'
+                data: 'Logout Error'
             }
-
         }
-
-
-
     }
 
 

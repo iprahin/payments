@@ -68,7 +68,10 @@ export class AuthController {
 
             if(token.success === true) {
                 res.cookie('refreshToken', token.tokens?.refreshToken, {
-                    httpOnly: true
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
                 });
 
                 await this.tokenService.saveToken(Number(token.data), token.tokens?.refreshToken);
@@ -97,25 +100,53 @@ export class AuthController {
 
 
     logout = async(req: Request, res: Response): Promise<void> => {
+        try { 
+            const { refreshToken } = req.cookies;
 
-        const { refreshToken } = req.cookies
+            if(!refreshToken) {
+                res.status(401).json({ error: 'No refresh token provided' });
+                return;
+            }
 
-        await this.authService.logout()
+            const userData = await this.tokenService.validateRefreshToken(refreshToken);
+            
+            const result = await this.authService.logout(userData.id);
 
-        res.clearCookie('refreshToken');
+            res.clearCookie('refreshToken');
 
+            if(result.success) {
+                res.status(200).json({
+                    success: true,
+                    data: result.data
+                });
+            } else {
+                res.status(400).json({
+                    error: result.data
+                });
+            }
+
+        } catch (error) {
+            console.error('Logout Error', error);
+            res.clearCookie('refreshToken');
+            res.status(500).json({
+                error: 'Internal error'
+            });
+        }
     }
 
 
-    refresh = async(req: Request, res: Response): Promise<void> => {
+    refreshToken = async(req: Request, res: Response): Promise<void> => {
         try {
             const { refreshToken } = req.cookies
 
-            const tokens = await this.tokenService.refresh(refreshToken);
+            const tokens = await this.tokenService.refreshToken(refreshToken);
 
             if(tokens) {
                 res.cookie('refreshToken', tokens.refreshToken, {
-                            httpOnly: true
+                            httpOnly: true,
+                            secure: process.env.NODE_ENV === 'production',
+                            sameSite: 'strict',
+                            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
                         })
 
                 res.status(200).json({
